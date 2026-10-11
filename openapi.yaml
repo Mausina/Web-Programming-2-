@@ -1,0 +1,219 @@
+openapi: 3.0.3
+info:
+  title: SniperLab API
+  version: 1.0.0
+  description: REST API for SniperLab, a paper trading sniper for new Solana meme coins. A snipe belongs to a strategy.
+servers:
+  - url: http://localhost:3000
+
+paths:
+  /api/strategies:
+    get:
+      summary: Get all strategies
+      responses:
+        "200":
+          description: List of strategies
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Strategy" }
+        "500": { $ref: "#/components/responses/ServerError" }
+    post:
+      summary: Create a strategy
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/StrategyInput" }
+      responses:
+        "201":
+          description: Strategy created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Strategy" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "500": { $ref: "#/components/responses/ServerError" }
+
+  /api/strategies/{id}:
+    parameters:
+      - $ref: "#/components/parameters/Id"
+    get:
+      summary: Get one strategy
+      responses:
+        "200":
+          description: The strategy
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Strategy" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "404": { $ref: "#/components/responses/NotFound" }
+    put:
+      summary: Update a strategy
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/StrategyInput" }
+      responses:
+        "200":
+          description: Updated strategy
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Strategy" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "404": { $ref: "#/components/responses/NotFound" }
+    delete:
+      summary: Delete a strategy and its snipes
+      responses:
+        "200": { $ref: "#/components/responses/Message" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /api/snipes:
+    get:
+      summary: Get all snipes (with the strategy name)
+      responses:
+        "200":
+          description: List of snipes
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Snipe" }
+        "500": { $ref: "#/components/responses/ServerError" }
+    post:
+      summary: Create a snipe (the strategy must exist)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/SnipeInput" }
+      responses:
+        "201":
+          description: Snipe created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Snipe" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "500": { $ref: "#/components/responses/ServerError" }
+
+  /api/snipes/{id}:
+    parameters:
+      - $ref: "#/components/parameters/Id"
+    get:
+      summary: Get one snipe
+      responses:
+        "200":
+          description: The snipe
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Snipe" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "404": { $ref: "#/components/responses/NotFound" }
+    put:
+      summary: Update a snipe (for example close it)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/SnipeInput" }
+      responses:
+        "200":
+          description: Updated snipe
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Snipe" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "404": { $ref: "#/components/responses/NotFound" }
+    delete:
+      summary: Delete a snipe
+      responses:
+        "200": { $ref: "#/components/responses/Message" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+components:
+  parameters:
+    Id:
+      name: id
+      in: path
+      required: true
+      description: MongoDB ObjectId
+      schema:
+        type: string
+        example: 64b7f0c2a1b2c3d4e5f60789
+
+  schemas:
+    StrategyInput:
+      type: object
+      required: [name, buyAmountSol, takeProfitPct, stopLossPct, maxHoldMinutes]
+      properties:
+        name: { type: string, minLength: 3, maxLength: 50, example: Fast Flip }
+        isActive: { type: boolean, default: true }
+        buyAmountSol: { type: number, minimum: 0.01, maximum: 100, example: 0.5 }
+        takeProfitPct: { type: number, minimum: 1, maximum: 10000, example: 100 }
+        stopLossPct: { type: number, minimum: 1, maximum: 100, example: 30 }
+        maxHoldMinutes: { type: integer, minimum: 1, maximum: 1440, example: 15 }
+        isPublic: { type: boolean, default: false }
+    Strategy:
+      allOf:
+        - $ref: "#/components/schemas/StrategyInput"
+        - type: object
+          properties:
+            _id: { type: string }
+            createdAt: { type: string, format: date-time }
+            updatedAt: { type: string, format: date-time }
+
+    SnipeInput:
+      type: object
+      required: [strategy, tokenName, tokenMint, amountSol]
+      properties:
+        strategy: { type: string, description: id of the strategy, example: 64b7f0c2a1b2c3d4e5f60789 }
+        tokenName: { type: string, minLength: 1, maxLength: 50, example: Pepe Rocket }
+        tokenMint: { type: string, minLength: 32, maxLength: 44, example: MASi45ub7Qe4ZE36UT5G6cU4ud8Fhhe4deS4F3cw9KTA }
+        amountSol: { type: number, minimum: 0.01, maximum: 100, example: 0.5 }
+        status: { type: string, enum: [open, closed], default: open }
+        profitLossPct: { type: number, default: 0, example: 50 }
+    Snipe:
+      allOf:
+        - $ref: "#/components/schemas/SnipeInput"
+        - type: object
+          properties:
+            _id: { type: string }
+            createdAt: { type: string, format: date-time }
+            updatedAt: { type: string, format: date-time }
+
+    Error:
+      type: object
+      properties:
+        message: { type: string }
+        errors:
+          type: array
+          description: Zod validation issues (only for validation errors)
+          items: { type: object }
+
+  responses:
+    BadRequest:
+      description: Validation failed, invalid id or the strategy does not exist
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+    NotFound:
+      description: Not found
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+    ServerError:
+      description: Server error
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+    Message:
+      description: Deleted
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message: { type: string }

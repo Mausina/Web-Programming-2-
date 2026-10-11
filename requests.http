@@ -1,0 +1,173 @@
+@baseUrl = http://localhost:3000/api
+@missingId = 64b7f0c2a1b2c3d4e5f60789
+
+########## STRATEGIES ##########
+
+### 1. POST with correct data (201)
+# @name createStrategy
+POST {{baseUrl}}/strategies
+Content-Type: application/json
+
+{
+  "name": "Fast Flip",
+  "buyAmountSol": 0.5,
+  "takeProfitPct": 100,
+  "stopLossPct": 30,
+  "maxHoldMinutes": 15
+}
+
+### 2. POST which fails validation (400)
+POST {{baseUrl}}/strategies
+Content-Type: application/json
+
+{
+  "name": "ab",
+  "buyAmountSol": 0,
+  "takeProfitPct": 100,
+  "stopLossPct": 150,
+  "maxHoldMinutes": 15
+}
+
+### 3. GET all strategies (200)
+GET {{baseUrl}}/strategies
+
+### 4. GET one strategy which succeeds (200)
+GET {{baseUrl}}/strategies/{{createStrategy.response.body.$._id}}
+
+### 5. GET one strategy which fails (404)
+GET {{baseUrl}}/strategies/{{missingId}}
+
+### 5b. GET one strategy with an invalid id (400)
+GET {{baseUrl}}/strategies/abc
+
+### 8. PUT which succeeds (200)
+PUT {{baseUrl}}/strategies/{{createStrategy.response.body.$._id}}
+Content-Type: application/json
+
+{
+  "name": "Fast Flip v2",
+  "buyAmountSol": 0.3,
+  "takeProfitPct": 80,
+  "stopLossPct": 25,
+  "maxHoldMinutes": 20,
+  "isPublic": true
+}
+
+### 9. PUT which fails because the strategy is not found (404)
+PUT {{baseUrl}}/strategies/{{missingId}}
+Content-Type: application/json
+
+{
+  "name": "Ghost",
+  "buyAmountSol": 0.3,
+  "takeProfitPct": 80,
+  "stopLossPct": 25,
+  "maxHoldMinutes": 20
+}
+
+### 10. PUT which fails because the data is not valid (400)
+PUT {{baseUrl}}/strategies/{{createStrategy.response.body.$._id}}
+Content-Type: application/json
+
+{
+  "name": "Fast Flip v3",
+  "buyAmountSol": 500,
+  "takeProfitPct": 80,
+  "stopLossPct": 0,
+  "maxHoldMinutes": 20
+}
+
+########## SNIPES ##########
+
+### POST a snipe (201) - uses the strategy created in request 1
+# @name createSnipe
+POST {{baseUrl}}/snipes
+Content-Type: application/json
+
+{
+  "strategy": "{{createStrategy.response.body.$._id}}",
+  "tokenName": "Pepe Rocket",
+  "tokenMint": "MASi45ub7Qe4ZE36UT5G6cU4ud8Fhhe4deS4F3cw9KTA",
+  "amountSol": 0.5
+}
+
+### POST a snipe which fails validation (400)
+POST {{baseUrl}}/snipes
+Content-Type: application/json
+
+{
+  "strategy": "123",
+  "tokenName": "",
+  "tokenMint": "abc",
+  "amountSol": -1
+}
+
+### POST a snipe with a strategy that does not exist (400)
+POST {{baseUrl}}/snipes
+Content-Type: application/json
+
+{
+  "strategy": "{{missingId}}",
+  "tokenName": "Pepe Rocket",
+  "tokenMint": "MASi45ub7Qe4ZE36UT5G6cU4ud8Fhhe4deS4F3cw9KTA",
+  "amountSol": 0.5
+}
+
+### GET all snipes (200)
+GET {{baseUrl}}/snipes
+
+### GET one snipe (200)
+GET {{baseUrl}}/snipes/{{createSnipe.response.body.$._id}}
+
+### GET one snipe which fails (404)
+GET {{baseUrl}}/snipes/{{missingId}}
+
+### PUT - close the snipe with +50% profit (200)
+PUT {{baseUrl}}/snipes/{{createSnipe.response.body.$._id}}
+Content-Type: application/json
+
+{
+  "strategy": "{{createStrategy.response.body.$._id}}",
+  "tokenName": "Pepe Rocket",
+  "tokenMint": "MASi45ub7Qe4ZE36UT5G6cU4ud8Fhhe4deS4F3cw9KTA",
+  "amountSol": 0.5,
+  "status": "closed",
+  "profitLossPct": 50
+}
+
+### PUT a snipe which fails because it is not found (404)
+PUT {{baseUrl}}/snipes/{{missingId}}
+Content-Type: application/json
+
+{
+  "strategy": "{{createStrategy.response.body.$._id}}",
+  "tokenName": "Pepe Rocket",
+  "tokenMint": "MASi45ub7Qe4ZE36UT5G6cU4ud8Fhhe4deS4F3cw9KTA",
+  "amountSol": 0.5
+}
+
+### PUT a snipe with bad data (400)
+PUT {{baseUrl}}/snipes/{{createSnipe.response.body.$._id}}
+Content-Type: application/json
+
+{
+  "strategy": "{{createStrategy.response.body.$._id}}",
+  "tokenName": "Pepe Rocket",
+  "tokenMint": "MASi45ub7Qe4ZE36UT5G6cU4ud8Fhhe4deS4F3cw9KTA",
+  "amountSol": 0.5,
+  "status": "sold"
+}
+
+### DELETE a snipe which succeeds (200)
+DELETE {{baseUrl}}/snipes/{{createSnipe.response.body.$._id}}
+
+### DELETE a snipe which fails (404)
+DELETE {{baseUrl}}/snipes/{{missingId}}
+
+########## DELETE STRATEGY (run last) ##########
+
+### 6. DELETE a strategy which succeeds (200)
+DELETE {{baseUrl}}/strategies/{{createStrategy.response.body.$._id}}
+
+### 7. DELETE a strategy which fails (404)
+DELETE {{baseUrl}}/strategies/{{missingId}}
