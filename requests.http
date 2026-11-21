@@ -1,4 +1,4 @@
-@baseUrl = http://localhost:3000/api
+@baseUrl = http://localhost:3000/api/v1
 @missingId = 64b7f0c2a1b2c3d4e5f60789
 
 ########## STRATEGIES ##########
@@ -171,3 +171,63 @@ DELETE {{baseUrl}}/strategies/{{createStrategy.response.body.$._id}}
 
 ### 7. DELETE a strategy which fails (404)
 DELETE {{baseUrl}}/strategies/{{missingId}}
+
+########## USERS ##########
+
+### Register a user (201)
+# @name register
+POST {{baseUrl}}/users
+Content-Type: application/json
+
+{
+  "username": "sniper_joe",
+  "email": "joe@example.com",
+  "password": "secret123"
+}
+
+### Register which fails validation (400)
+POST {{baseUrl}}/users
+Content-Type: application/json
+
+{
+  "username": "ab",
+  "email": "not-an-email",
+  "password": "123"
+}
+
+### Register with a duplicate email (409)
+POST {{baseUrl}}/users
+Content-Type: application/json
+
+{
+  "username": "another_name",
+  "email": "joe@example.com",
+  "password": "secret123"
+}
+
+### GET all users (200)
+GET {{baseUrl}}/users
+
+### GET one user (200)
+GET {{baseUrl}}/users/{{register.response.body.$._id}}
+
+### Login with the correct password (200)
+POST {{baseUrl}}/users/login
+Content-Type: application/json
+
+{
+  "email": "joe@example.com",
+  "password": "secret123"
+}
+
+### Login with the wrong password (401)
+POST {{baseUrl}}/users/login
+Content-Type: application/json
+
+{
+  "email": "joe@example.com",
+  "password": "wrongpassword"
+}
+
+### DELETE a user (200)
+DELETE {{baseUrl}}/users/{{register.response.body.$._id}}

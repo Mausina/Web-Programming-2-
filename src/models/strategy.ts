@@ -1,4 +1,5 @@
-import mongoose from "mongoose";
+import { Schema, model } from "mongoose";
+import { z } from "zod";
 
 export interface IStrategy {
   name: string;
@@ -10,7 +11,7 @@ export interface IStrategy {
   isPublic: boolean;
 }
 
-const strategySchema = new mongoose.Schema<IStrategy>(
+const strategySchema = new Schema<IStrategy>(
   {
     name: { type: String, required: true },
     isActive: { type: Boolean, default: true },
@@ -23,4 +24,17 @@ const strategySchema = new mongoose.Schema<IStrategy>(
   { timestamps: true }
 );
 
-export const Strategy = mongoose.model<IStrategy>("Strategy", strategySchema);
+export const Strategy = model<IStrategy>("Strategy", strategySchema);
+
+// Zod schemas for validating the request body (used by the validate middleware)
+export const createStrategyZSchema = z.object({
+  name: z.string().min(3).max(50),
+  isActive: z.boolean().optional(),
+  buyAmountSol: z.number().min(0.01).max(100),
+  takeProfitPct: z.number().min(1).max(10000),
+  stopLossPct: z.number().min(1).max(100),
+  maxHoldMinutes: z.number().int().min(1).max(1440),
+  isPublic: z.boolean().optional(),
+});
+
+export const updateStrategyZSchema = createStrategyZSchema;

@@ -32,7 +32,7 @@ describe("Strategies API", () => {
   let strategyId = "";
 
   it("POST with correct data creates a strategy", async () => {
-    const res = await request(app).post("/api/strategies").send(goodStrategy);
+    const res = await request(app).post("/api/v1/strategies").send(goodStrategy);
     expect(res.status).toBe(201);
     expect(res.body.name).toBe("Test Strategy");
     expect(res.body.isActive).toBe(true);
@@ -41,63 +41,63 @@ describe("Strategies API", () => {
 
   it("POST with bad data returns 400", async () => {
     const res = await request(app)
-      .post("/api/strategies")
+      .post("/api/v1/strategies")
       .send({ name: "ab", buyAmountSol: 0, takeProfitPct: 100, stopLossPct: 150, maxHoldMinutes: 15 });
     expect(res.status).toBe(400);
   });
 
   it("GET returns all strategies", async () => {
-    const res = await request(app).get("/api/strategies");
+    const res = await request(app).get("/api/v1/strategies");
     expect(res.status).toBe(200);
     expect(res.body.length).toBe(1);
   });
 
   it("GET one returns the strategy", async () => {
-    const res = await request(app).get(`/api/strategies/${strategyId}`);
+    const res = await request(app).get(`/api/v1/strategies/${strategyId}`);
     expect(res.status).toBe(200);
     expect(res.body._id).toBe(strategyId);
   });
 
   it("GET one returns 404 if the strategy does not exist", async () => {
-    const res = await request(app).get(`/api/strategies/${missingId}`);
+    const res = await request(app).get(`/api/v1/strategies/${missingId}`);
     expect(res.status).toBe(404);
   });
 
   it("GET one returns 400 for an invalid id", async () => {
-    const res = await request(app).get("/api/strategies/abc");
+    const res = await request(app).get("/api/v1/strategies/abc");
     expect(res.status).toBe(400);
   });
 
   it("PUT updates the strategy", async () => {
     const res = await request(app)
-      .put(`/api/strategies/${strategyId}`)
+      .put(`/api/v1/strategies/${strategyId}`)
       .send({ ...goodStrategy, name: "New Name" });
     expect(res.status).toBe(200);
     expect(res.body.name).toBe("New Name");
   });
 
   it("PUT returns 404 if the strategy does not exist", async () => {
-    const res = await request(app).put(`/api/strategies/${missingId}`).send(goodStrategy);
+    const res = await request(app).put(`/api/v1/strategies/${missingId}`).send(goodStrategy);
     expect(res.status).toBe(404);
   });
 
   it("PUT with bad data returns 400", async () => {
     const res = await request(app)
-      .put(`/api/strategies/${strategyId}`)
+      .put(`/api/v1/strategies/${strategyId}`)
       .send({ ...goodStrategy, maxHoldMinutes: 0 });
     expect(res.status).toBe(400);
   });
 
   it("DELETE deletes the strategy", async () => {
-    const res = await request(app).delete(`/api/strategies/${strategyId}`);
+    const res = await request(app).delete(`/api/v1/strategies/${strategyId}`);
     expect(res.status).toBe(200);
 
-    const check = await request(app).get(`/api/strategies/${strategyId}`);
+    const check = await request(app).get(`/api/v1/strategies/${strategyId}`);
     expect(check.status).toBe(404);
   });
 
   it("DELETE returns 404 if the strategy does not exist", async () => {
-    const res = await request(app).delete(`/api/strategies/${missingId}`);
+    const res = await request(app).delete(`/api/v1/strategies/${missingId}`);
     expect(res.status).toBe(404);
   });
 });

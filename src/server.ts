@@ -1,18 +1,13 @@
-import "dotenv/config";
-import mongoose from "mongoose";
+import { connectDB } from "./config/database";
+import { env } from "./config/env";
 import app from "./app";
 
-const PORT = process.env.PORT || 3000;
-const MONGO_URI = process.env.MONGO_URI as string;
-
-mongoose
-  .connect(MONGO_URI)
-  .then(() => {
-    console.log("Connected to MongoDB");
-    app.listen(PORT, () => {
-      console.log(`Server running on http://localhost:${PORT}`);
-    });
-  })
-  .catch((error) => {
-    console.log("Could not connect to MongoDB", error);
+// connect to the database first, then start listening
+const startServer = async (): Promise<void> => {
+  await connectDB();
+  app.listen(env.port, () => {
+    console.log(`Server running on port ${env.port}`);
   });
+};
+
+startServer();

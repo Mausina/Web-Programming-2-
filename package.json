@@ -2,20 +2,25 @@
   "name": "sniperlab-api",
   "version": "1.0.0",
   "description": "SniperLab REST API - Web Programming 2 Part 1",
-  "main": "dist/server.js",
+  "main": "build/server.js",
   "scripts": {
     "dev": "tsx watch src/server.ts",
     "build": "tsc",
-    "start": "node dist/server.js",
+    "start": "node build/server.js",
+    "typecheck": "tsc --noEmit",
     "test": "vitest run"
   },
   "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "cors": "^2.8.6",
     "dotenv": "^16.4.5",
     "express": "^5.1.0",
     "mongoose": "^8.15.0",
     "zod": "^4.0.0"
   },
   "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "@types/cors": "^2.8.19",
     "@types/express": "^5.0.0",
     "@types/node": "^22.0.0",
     "@types/supertest": "^6.0.2",

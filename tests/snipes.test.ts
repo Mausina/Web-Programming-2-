@@ -12,7 +12,7 @@ beforeAll(async () => {
   await mongoose.connect(mongoServer.getUri());
 
   // a snipe needs a strategy, so create one first
-  const res = await request(app).post("/api/strategies").send({
+  const res = await request(app).post("/api/v1/strategies").send({
     name: "Snipe Test Strategy",
     buyAmountSol: 0.5,
     takeProfitPct: 100,
@@ -42,7 +42,7 @@ describe("Snipes API", () => {
   }
 
   it("POST with correct data creates a snipe", async () => {
-    const res = await request(app).post("/api/snipes").send(goodSnipe());
+    const res = await request(app).post("/api/v1/snipes").send(goodSnipe());
     expect(res.status).toBe(201);
     expect(res.body.status).toBe("open");
     snipeId = res.body._id;
@@ -50,38 +50,38 @@ describe("Snipes API", () => {
 
   it("POST with bad data returns 400", async () => {
     const res = await request(app)
-      .post("/api/snipes")
+      .post("/api/v1/snipes")
       .send({ strategy: "123", tokenName: "", tokenMint: "abc", amountSol: -1 });
     expect(res.status).toBe(400);
   });
 
   it("POST with a strategy that does not exist returns 400", async () => {
     const res = await request(app)
-      .post("/api/snipes")
+      .post("/api/v1/snipes")
       .send({ ...goodSnipe(), strategy: missingId });
     expect(res.status).toBe(400);
   });
 
   it("GET returns all snipes with the strategy name", async () => {
-    const res = await request(app).get("/api/snipes");
+    const res = await request(app).get("/api/v1/snipes");
     expect(res.status).toBe(200);
     expect(res.body.length).toBe(1);
     expect(res.body[0].strategy.name).toBe("Snipe Test Strategy");
   });
 
   it("GET one returns the snipe", async () => {
-    const res = await request(app).get(`/api/snipes/${snipeId}`);
+    const res = await request(app).get(`/api/v1/snipes/${snipeId}`);
     expect(res.status).toBe(200);
   });
 
   it("GET one returns 404 if the snipe does not exist", async () => {
-    const res = await request(app).get(`/api/snipes/${missingId}`);
+    const res = await request(app).get(`/api/v1/snipes/${missingId}`);
     expect(res.status).toBe(404);
   });
 
   it("PUT closes the snipe", async () => {
     const res = await request(app)
-      .put(`/api/snipes/${snipeId}`)
+      .put(`/api/v1/snipes/${snipeId}`)
       .send({ ...goodSnipe(), status: "closed", profitLossPct: 50 });
     expect(res.status).toBe(200);
     expect(res.body.status).toBe("closed");
@@ -89,24 +89,24 @@ describe("Snipes API", () => {
   });
 
   it("PUT returns 404 if the snipe does not exist", async () => {
-    const res = await request(app).put(`/api/snipes/${missingId}`).send(goodSnipe());
+    const res = await request(app).put(`/api/v1/snipes/${missingId}`).send(goodSnipe());
     expect(res.status).toBe(404);
   });
 
   it("PUT with bad data returns 400", async () => {
     const res = await request(app)
-      .put(`/api/snipes/${snipeId}`)
+      .put(`/api/v1/snipes/${snipeId}`)
       .send({ ...goodSnipe(), status: "sold" });
     expect(res.status).toBe(400);
   });
 
   it("DELETE deletes the snipe", async () => {
-    const res = await request(app).delete(`/api/snipes/${snipeId}`);
+    const res = await request(app).delete(`/api/v1/snipes/${snipeId}`);
     expect(res.status).toBe(200);
   });
 
   it("DELETE returns 404 if the snipe does not exist", async () => {
-    const res = await request(app).delete(`/api/snipes/${missingId}`);
+    const res = await request(app).delete(`/api/v1/snipes/${missingId}`);
     expect(res.status).toBe(404);
   });
 });

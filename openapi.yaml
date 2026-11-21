@@ -7,7 +7,7 @@ servers:
   - url: http://localhost:3000
 
 paths:
-  /api/strategies:
+  /api/v1/strategies:
     get:
       summary: Get all strategies
       responses:
@@ -35,7 +35,7 @@ paths:
         "400": { $ref: "#/components/responses/BadRequest" }
         "500": { $ref: "#/components/responses/ServerError" }
 
-  /api/strategies/{id}:
+  /api/v1/strategies/{id}:
     parameters:
       - $ref: "#/components/parameters/Id"
     get:
@@ -70,7 +70,7 @@ paths:
         "400": { $ref: "#/components/responses/BadRequest" }
         "404": { $ref: "#/components/responses/NotFound" }
 
-  /api/snipes:
+  /api/v1/snipes:
     get:
       summary: Get all snipes (with the strategy name)
       responses:
@@ -98,7 +98,7 @@ paths:
         "400": { $ref: "#/components/responses/BadRequest" }
         "500": { $ref: "#/components/responses/ServerError" }
 
-  /api/snipes/{id}:
+  /api/v1/snipes/{id}:
     parameters:
       - $ref: "#/components/parameters/Id"
     get:
@@ -128,6 +128,76 @@ paths:
         "404": { $ref: "#/components/responses/NotFound" }
     delete:
       summary: Delete a snipe
+      responses:
+        "200": { $ref: "#/components/responses/Message" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /api/v1/users:
+    get:
+      summary: Get all users (the password hash is never returned)
+      responses:
+        "200":
+          description: List of users
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/User" }
+        "500": { $ref: "#/components/responses/ServerError" }
+    post:
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/RegisterInput" }
+      responses:
+        "201":
+          description: User created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/User" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "500": { $ref: "#/components/responses/ServerError" }
+
+  /api/v1/users/login:
+    post:
+      summary: Log in with email and password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/LoginInput" }
+      responses:
+        "200":
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string }
+                  user: { $ref: "#/components/schemas/User" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+
+  /api/v1/users/{id}:
+    parameters:
+      - $ref: "#/components/parameters/Id"
+    get:
+      summary: Get one user
+      responses:
+        "200":
+          description: The user
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/User" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "404": { $ref: "#/components/responses/NotFound" }
+    delete:
+      summary: Delete a user
       responses:
         "200": { $ref: "#/components/responses/Message" }
         "400": { $ref: "#/components/responses/BadRequest" }
@@ -184,6 +254,29 @@ components:
             createdAt: { type: string, format: date-time }
             updatedAt: { type: string, format: date-time }
 
+    RegisterInput:
+      type: object
+      required: [username, email, password]
+      properties:
+        username: { type: string, minLength: 3, maxLength: 30, example: sniper_joe }
+        email: { type: string, format: email, example: joe@example.com }
+        password: { type: string, minLength: 6, maxLength: 100, example: secret123 }
+    LoginInput:
+      type: object
+      required: [email, password]
+      properties:
+        email: { type: string, format: email, example: joe@example.com }
+        password: { type: string, example: secret123 }
+    User:
+      type: object
+      description: The password hash is never included in a response.
+      properties:
+        _id: { type: string }
+        username: { type: string, example: sniper_joe }
+        email: { type: string, example: joe@example.com }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+
     Error:
       type: object
       properties:
@@ -206,6 +299,16 @@ components:
           schema: { $ref: "#/components/schemas/Error" }
     ServerError:
       description: Server error
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+    Conflict:
+      description: The email or username is already in use
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+    Unauthorized:
+      description: Invalid credentials
       content:
         application/json:
           schema: { $ref: "#/components/schemas/Error" }

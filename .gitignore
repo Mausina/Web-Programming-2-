@@ -1,0 +1,20 @@
+# npm
+node_modules
+package-lock.json
+*.log
+*.gz
+
+# build folder
+build
+dist
+
+# environment variables / secrets
+.env
+.env.local
+
+# test coverage
+coverage/
+
+# OS files
+.DS_Store
+Thumbs.db
